@@ -2,4 +2,3 @@ model/
 _pycache_/
 *.pyc
 test.py
-data/

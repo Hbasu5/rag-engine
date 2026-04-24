@@ -22,20 +22,19 @@ def keyword_score(query, text):
     return score
 
 
-def search(query, model, index, documents, k=5, threshold=1.2):
-    query_embedding = model.encode([query])
+def search_index(query_embedding, index, texts, query, k=5, threshold=1.2):
     distances, indices = index.search(np.array(query_embedding), k)
 
     results = []
     for i, d in zip(indices[0], distances[0]):
-        doc = documents[i]
-        score = keyword_score(query, doc)
+        text = texts[i]
+        score = keyword_score(query, text)
 
         if score == 0 and d > 0.9:
             continue
 
         if d < threshold:
-            results.append((doc, d, score))
+            results.append((text, d, score))
 
     results.sort(key=lambda x: (-x[2], x[1]))
     return results
