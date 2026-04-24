@@ -1,0 +1,174 @@
+# 🧠 RAG Engine
+
+A modular **Retrieval-Augmented Generation (RAG)** system built for scalable, real-world AI applications.
+
+---
+
+## 🚀 Overview
+
+This project implements the core pipeline of a RAG system:
+
+* 🔍 Semantic retrieval using embeddings
+* ⚡ Fast similarity search with FAISS
+* 🧠 Hybrid ranking (semantic + keyword)
+* 🧩 Modular design for easy extension (LLMs, APIs, datasets)
+
+> Designed to start simple and scale into a full AI system.
+
+---
+
+## 🧱 Architecture
+
+```
+User Query
+    ↓
+Embedding (query)
+    ↓
+Vector Search (FAISS)
+    ↓
+Top-K Retrieval
+    ↓
+Ranking (semantic + keyword)
+    ↓
+Context Output → (LLM ready)
+```
+
+---
+
+## ✨ Features
+
+* Sentence-level chunking for precise retrieval
+* Semantic similarity search using embeddings
+* FAISS-based vector database
+* Hybrid ranking to improve relevance
+* Modular structure for scalability
+* Local-first setup (can be extended to APIs)
+
+---
+
+## 📁 Project Structure
+
+```
+rag-engine/
+│
+├── app/
+│   ├── chunking.py       # Text preprocessing
+│   ├── embedding.py      # Embedding generation
+│   ├── retrieval.py      # Search + ranking logic
+│
+├── model/                # Local embedding model (ignored in git; to be downloaded by user)
+│
+├── main.py               # Entry point
+├── README.md
+```
+
+---
+
+## ⚙️ Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/rag-engine.git
+cd rag-engine
+```
+
+---
+
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+### 3. Download embedding model
+
+Download from:
+https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+Place inside:
+
+```
+model/all-MiniLM-L6-v2/
+```
+
+---
+
+### 4. Run the system
+
+```bash
+python main.py
+```
+
+---
+
+## 🧪 Example
+
+```
+Ask something: What is Python?
+
+Top Matches:
+
+- Python is a programming language used for AI and web development.
+```
+
+---
+
+## 🧠 How it Works
+
+1. Text is split into meaningful chunks
+2. Each chunk is converted into embeddings
+3. FAISS indexes embeddings for fast search
+4. Query is embedded and compared
+5. Relevant chunks are retrieved and ranked
+
+---
+
+## 🔌 Extensibility
+
+This system is designed to be extended:
+
+* 🔹 Plug in LLMs (OpenAI, local models, etc.)
+* 🔹 Add PDF or document ingestion
+* 🔹 Replace embedding providers
+* 🔹 Build APIs or UI layers
+
+---
+
+## 🚧 Future Improvements
+
+* Context-aware response generation
+* Multi-document ingestion (PDF, web, etc.)
+* Persistent vector storage
+* API backend (FastAPI)
+* UI interface
+
+---
+
+## 🧨 Why this Project?
+
+Most RAG implementations focus only on LLMs.
+
+This project focuses on the **retrieval layer**, which is the foundation of any reliable RAG system.
+
+---
+
+## 📌 Tech Stack
+
+* Python
+* SentenceTransformers
+* FAISS
+* NumPy
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+
+© 2026- HARDIK BASU
