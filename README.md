@@ -52,16 +52,47 @@ Context Output → (LLM ready)
 rag-engine/
 │
 ├── app/
-│   ├── chunking.py       # Text preprocessing
-│   ├── embedding.py      # Embedding generation
-│   ├── retrieval.py      # Search + ranking logic
+│   │
+│   ├── core/                     # 🧠 Core logic (no I/O)
+│   │   ├── __init__.py
+│   │   ├── chunking.py
+│   │   ├── embeddings.py
+│   │   ├── retriever.py
+│   │
+│   ├── storage/                  # 💾 Persistence layer
+│   │   ├── faiss_store.py
+│   │
+│   ├── ingestion/                # 📂 Data loading
+│   │   ├── loader.py             # txt/md (PDF later)
+│   │
+│   ├── services/                 # ⚙️ Orchestration
+│       ├── __init__.py
+│       ├── rag_pipeline.py
 │
-├── model/                # Local embedding model (ignored in git; to be downloaded by user)
 │
-├── main.py               # Entry point
+├── data/                         # ⚠️ Runtime-generated (gitignored)
+│   ├── raw/                      # user files
+│   │   ├── *.txt
+│   │   ├── *.md
+│   │
+│   ├── faiss.index
+│   ├── metadata.pkl
+│
+├── models/                       # 🤖 Embedding models (gitignored)
+│
+│
+├── test.py                       # Scratch testing (gitignored)
+├── main.py                       # Entry point
+├── requirements.txt
 ├── README.md
+├── Dare.md
+├── .gitignore
 ```
 
+IMPORTANT NOTES:
+* data\ folder is  only added as a part of a feature release, and is left for immediate start-up without any prior training, future pushes will not be made for \data\.
+* sample.txt is AI Generated and has be added for immediate exploration of the system; future pushes will not have any new changes.
+* everything in main.py is from test.py; it is hard-tested and hence main.py is free for any errors.
 ---
 
 ## ⚙️ Setup
@@ -106,6 +137,7 @@ python main.py
 
 ## 🧪 Example
 
+**sample.txt may either have or not have this!**
 ```
 Ask something: What is Python?
 
@@ -131,7 +163,7 @@ Top Matches:
 This system is designed to be extended:
 
 * 🔹 Plug in LLMs (OpenAI, local models, etc.)
-* 🔹 Add PDF or document ingestion
+* 🔹 Add PDF or document ingestion **(done in feature release; document ingestion)**
 * 🔹 Replace embedding providers
 * 🔹 Build APIs or UI layers
 
