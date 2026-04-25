@@ -1,41 +1,50 @@
-from app.core.embeddings import load_model
-from app.core.chunking import chunk_text
-from app.core.retriever import build_index, search_index
-from app.storage.faiss_store import save_index, load_index
-from app.ingestion.loader import load_documents
+from app.services.answer_engine import AnswerEngine
+
+def clean_chunks(chunks):
+    cleaned = []
+
+    for chunk in chunks:
+        text = chunk.strip().lower()
+
+        if len(text) < 40:
+            continue
+
+        if any(word in text for word in ["chapter", "section"]):
+            continue
+
+        cleaned.append(chunk)
+
+    return cleaned
+
+
+def format_context(chunks):
+    formatted = ""
+    for i, chunk in enumerate(chunks):
+        formatted += f"[Source {i+1}]\n{chunk}\n\n"
+    return formatted
 
 
 class RAGPipeline:
-    def __init__(self):
-        self.model = load_model()
-        self.index = None
-        self.texts = None
+    def __init__(self, retriever, llm=None):
+        self.retriever = retriever
+        self.llm = llm
+        self.answer_engine = AnswerEngine()
 
-    def build_from_folder(self, folder="data/raw"):
-        documents = load_documents(folder)
+    def query(self, user_query: str):
+        chunks = self.retriever.retrieve(user_query)
 
-        chunks = []
-        for doc in documents:
-            chunks.extend(chunk_text(doc))
+        chunks = clean_chunks(chunks)
+        chunks = chunks[:3]
 
-        embeddings = self.model.encode(chunks)
+        context_text = format_context(chunks)
 
-        self.index = build_index(embeddings)
-        self.texts = chunks
+        fallback = self.answer_engine.generate(user_query, chunks)
 
-        save_index(self.index, self.texts)
+        if self.llm:
+            try:
+                context_text = format_context(chunks)
+                return self.llm.generate(user_query, context_text)
+            except:
+                print("LLM UNAVAILABLE! USING FALLBACK MEASURES...")
 
-        print("✅ Index built and saved.")
-
-    # 📂 Load existing index
-    def load(self, path="data"):
-        self.index, self.texts = load_index(path)
-        print("✅ Index loaded.")
-
-    # 🔍 Query
-    def query(self, question, k=5):
-        query_vec = self.model.encode([question])
-
-        results = search_index(query_vec, self.index, self.texts, question, k)
-
-        return results
+        return fallback

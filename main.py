@@ -1,18 +1,39 @@
+from app.core.embeddings import load_model
+import os
+
+from app.core.retriever_engine import RetrieverEngine
 from app.services.rag_pipeline import RAGPipeline
+from app.llm.gemini import GeminiLLM
 
-rag = RAGPipeline()
 
-rag.build_from_folder("data/raw")
+retriever = RetrieverEngine()
+retriever.load("data")
+
+
+api_key = os.getenv("GEMINI_API_KEY")
+print("API KEY LOADED:", api_key is not None)
+
+llm = GeminiLLM(api_key=api_key)
+
+
+rag = RAGPipeline(
+    retriever=retriever,
+    llm=llm
+)
 
 # 📂 Later runs
-rag.load()
+# rag.load()
 
 while True:
-    q = input("\nAsk something (or type 'exit'): ")
-    if q.lower() == "exit":
-        break
+	try:
+	    q = input("\nAsk something (or type 'exit'): ")
+	    if q.lower() == "exit":
+	        break
 
-    results = rag.query(q)
-
-    for i, (text, dist, score) in enumerate(results, 1):
-        print(f"\n{i}. {text.strip()}\n")
+	    results = rag.query(q)
+	    print("\n-----ANSWER-----")
+	    print(results)
+	    print("-----------------\n")
+	except KeyboardInterrupt:
+	    print("\nExiting...")
+	    break
