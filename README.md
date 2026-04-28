@@ -1,3 +1,5 @@
+### Note: The README might not be up-to-date with the current code/folder structure since development focus is in implementing new features. I will try my best to update it as soon as possible😄.
+
 # 🧠 RAG Engine
 
 A modular **Retrieval-Augmented Generation (RAG)** system built for scalable, real-world AI applications.
