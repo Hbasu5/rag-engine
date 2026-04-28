@@ -30,21 +30,42 @@ class RAGPipeline:
         self.llm = llm
         self.answer_engine = AnswerEngine()
 
-    def query(self, user_query: str):
+    def run(self, user_query: str, use_llm: bool = True):
         chunks = self.retriever.retrieve(user_query)
 
         chunks = clean_chunks(chunks)
         chunks = chunks[:3]
 
+
+        if not chunks:
+            return {
+                "answer": "No relevant information found.",
+                "sources": [],
+                "confidence": 0.0
+            }
+
         context_text = format_context(chunks)
 
-        fallback = self.answer_engine.generate(user_query, chunks)
+        # Always prepare fallback
+        fallback_answer = self.answer_engine.generate(user_query, chunks)
 
-        if self.llm:
+
+        if use_llm and self.llm:
             try:
-                context_text = format_context(chunks)
-                return self.llm.generate(user_query, context_text)
-            except:
-                print("LLM UNAVAILABLE! USING FALLBACK MEASURES...")
+                llm_answer = self.llm.generate(user_query, context_text)
 
-        return fallback
+                return {
+                    "answer": llm_answer,
+                    "sources": chunks,
+                    "confidence": 0.85
+                }
+
+            except Exception:
+                print("LLM FAILED → USING FALLBACK")
+
+
+        return {
+            "answer": fallback_answer,
+            "sources": chunks,
+            "confidence": 0.5
+        }
