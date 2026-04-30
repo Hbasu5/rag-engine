@@ -1,9 +1,14 @@
 from fastapi import FastAPI
 from app.api.routes import router
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(
-    title="Hybrid RAG API",
-    version="1.0"
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # attach routes

@@ -25,6 +25,9 @@ def format_context(chunks):
 
 
 class RAGPipeline:
+    def query(self, query: str):
+        docs = self.retriever.retrieve(query)
+        return self.llm.generate(query, docs)
     def __init__(self, retriever, llm=None):
         self.retriever = retriever
         self.llm = llm
