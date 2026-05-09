@@ -25,9 +25,6 @@ def format_context(chunks):
 
 
 class RAGPipeline:
-    def query(self, query: str):
-        docs = self.retriever.retrieve(query)
-        return self.llm.generate(query, docs)
     def __init__(self, retriever, llm=None):
         self.retriever = retriever
         self.llm = llm
@@ -44,14 +41,11 @@ class RAGPipeline:
             return {
                 "answer": "No relevant information found.",
                 "sources": [],
-                "confidence": 0.0
+                "confidence": 0.0,
+                "mode":"none"
             }
 
         context_text = format_context(chunks)
-
-        # Always prepare fallback
-        fallback_answer = self.answer_engine.generate(user_query, chunks)
-
 
         if use_llm and self.llm:
             try:
@@ -60,15 +54,18 @@ class RAGPipeline:
                 return {
                     "answer": llm_answer,
                     "sources": chunks,
-                    "confidence": 0.85
+                    "confidence": 0.85,
+                    "mode":"LLM"
                 }
 
             except Exception:
-                print("LLM FAILED → USING FALLBACK")
+                print("LLM FAILED, USING FALLBACK")
 
+        fallback_answer = self.answer_engine.generate(user_query, chunks)
 
         return {
             "answer": fallback_answer,
             "sources": chunks,
-            "confidence": 0.5
+            "confidence": 0.5,
+            "mode":"Local"
         }
