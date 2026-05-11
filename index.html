@@ -4,6 +4,7 @@
 <title>RAG Interface</title>
 
 <style>
+
 body {
     margin: 0;
     font-family: Arial;
@@ -15,7 +16,7 @@ body {
 }
 
 #header {
-    height: 50px;
+    height: 55px;
     display: flex;
     align-items: center;
     padding: 0 20px;
@@ -31,14 +32,15 @@ body {
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 .msg {
     max-width: 65%;
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-radius: 18px;
-    line-height: 1.5;
+    line-height: 1.6;
+    word-wrap: break-word;
 }
 
 .user {
@@ -52,37 +54,49 @@ body {
 }
 
 .meta-btn {
-    margin-top: 6px;
+    margin-top: 8px;
     font-size: 12px;
     cursor: pointer;
     color: #93c5fd;
 }
 
-.sources-box {
-    background: #111827;
-    margin-top: 8px;
-    padding: 10px;
-    border-radius: 10px;
-    display: none;
-}
-
 #inputBox {
     display: flex;
-    padding: 10px;
+    align-items: center;
+    padding: 6px 10px;
     background: #111827;
     position: relative;
 }
 
+#attachBtn {
+    width:38px;
+    height: 38px;
+    min-width: 42px;
+    background: #2563eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 26px;
+    margin-right: 10px;
+    transition: 0.2s;
+}
+
+#attachBtn:hover {
+    background: #1d4ed8;
+}
+
 #query {
     flex: 1;
-    padding: 12px;
-    border-radius: 20px;
+    padding: 8px 12px;
+    border-radius: 18px;
     background: white;
     color: black;
     outline: none;
+    min-height: 20px;
 }
 
-/* Stable placeholder */
 #query.empty:before {
     content: "Type '/' for commands...";
     color: #9ca3af;
@@ -92,19 +106,45 @@ button {
     margin-left: 10px;
     padding: 10px 16px;
     border-radius: 12px;
+    border: none;
+    cursor: pointer;
+}
+
+#attachMenu {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    background: #1f2937;
+    border-radius: 14px;
+    overflow: hidden;
+    display: none;
+    min-width: 220px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    z-index: 1000;
+}
+
+.attach-item {
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.attach-item:hover {
+    background: #374151;
 }
 
 #slashMenu {
     position: absolute;
-    bottom: 60px;
-    left: 10px;
+    bottom: 65px;
+    left: 70px;
     background: #1f2937;
     border-radius: 10px;
     display: none;
+    overflow: hidden;
 }
 
 .slash-item {
-    padding: 8px 12px;
+    padding: 10px 14px;
     cursor: pointer;
 }
 
@@ -115,41 +155,222 @@ button {
 .token {
     background: #374151;
     color: #e5e7eb;
-    padding: 3px 8px;
+    padding: 4px 8px;
     border-radius: 8px;
     margin-right: 5px;
     display: inline-block;
     font-size: 13px;
 }
+
+#uploadModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 9999;
+}
+
+#modalContent {
+    background: #111827;
+    padding: 30px;
+    border-radius: 18px;
+    min-width: 320px;
+    text-align: center;
+    border: 1px solid #374151;
+}
+
+#modalMessage {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+#modalContent button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#modalContent button:hover {
+    background: #1d4ed8;
+}
+
+#popup {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    background: #111827;
+    padding: 16px;
+    border-radius: 14px;
+    max-width: 320px;
+    z-index: 1000;
+    border: 1px solid #374151;
+}
+
 </style>
 </head>
 
 <body>
 
 <div id="header">
-    <span style="color:#60a5fa;">RAG</span> Interface v1.0.2
+    <span style="color:#60a5fa;">RAG</span> Interface v1.0.3
 </div>
 
 <div id="chat"></div>
 
 <div id="inputBox">
+
+    <div id="attachBtn" onclick="toggleAttachMenu()">
+        +
+    </div>
+
     <div id="query" contenteditable="true"></div>
+
     <button onclick="sendMessage()">Send</button>
 
     <div id="slashMenu">
         <div class="slash-item" onclick="setMode('LLM')">LLM</div>
         <div class="slash-item" onclick="setMode('Local')">Local</div>
     </div>
+
+</div>
+
+<div id="attachMenu">
+
+    <div class="attach-item" onclick="triggerUpload()">
+        📄 Add Document
+    </div>
+
+    <div class="attach-item">
+        🎤 Add Audio
+    </div>
+
+    <div class="attach-item">
+        🌐 Web Search
+    </div>
+
+</div>
+
+<input type="file" id="fileUpload" hidden>
+
+<div id="uploadModal">
+
+    <div id="modalContent">
+
+        <div id="modalMessage">
+            Upload successful
+        </div>
+
+        <button onclick="closeModal()">
+            Close
+        </button>
+
+    </div>
+
 </div>
 
 <script>
+
 let mode = "Auto";
 
 const input = document.getElementById("query");
 const slashMenu = document.getElementById("slashMenu");
+const fileUpload = document.getElementById("fileUpload");
+
+/* ===== Upload ===== */
+
+fileUpload.addEventListener("change", async () => {
+
+    const file = fileUpload.files[0];
+
+    if (!file) return;
+
+    showModal("Uploading...");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+
+        const res = await fetch("/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.error) {
+            showModal("❌ " + data.error);
+            return;
+        }
+
+        showModal("✅ " + data.message);
+
+    } catch (err) {
+
+        showModal("❌ Upload failed");
+
+        console.error(err);
+    }
+});
+
+/* ===== Attachment Menu ===== */
+
+function toggleAttachMenu() {
+
+    const menu = document.getElementById("attachMenu");
+
+    if (menu.style.display === "block") {
+        menu.style.display = "none";
+    } else {
+        menu.style.display = "block";
+    }
+}
+
+function triggerUpload() {
+
+    document.getElementById("fileUpload").click();
+
+    document.getElementById("attachMenu").style.display = "none";
+}
+
+/* ===== Modal ===== */
+
+function showModal(message) {
+
+    document.getElementById("modalMessage").innerText = message;
+
+    document.getElementById("uploadModal").style.display = "flex";
+}
+
+function closeModal() {
+
+    document.getElementById("uploadModal").style.display = "none";
+}
+
+/* ===== Close Menu On Outside Click ===== */
+
+document.addEventListener("click", function(e) {
+
+    const menu = document.getElementById("attachMenu");
+    const btn = document.getElementById("attachBtn");
+
+    if (!menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.style.display = "none";
+    }
+});
 
 /* ===== Placeholder ===== */
+
 function updatePlaceholder() {
+
     if (input.innerText.trim() === "") {
         input.classList.add("empty");
     } else {
@@ -157,9 +378,15 @@ function updatePlaceholder() {
     }
 }
 
-/* ===== Input handler ===== */
+input.addEventListener("input", handleInput);
+
+/* ===== Input Handler ===== */
+
 function handleInput() {
-    if (input.innerHTML === "<br>") input.innerHTML = "";
+
+    if (input.innerHTML === "<br>") {
+        input.innerHTML = "";
+    }
 
     const text = input.innerText.trim();
 
@@ -172,47 +399,66 @@ function handleInput() {
     updatePlaceholder();
 }
 
-input.addEventListener("input", handleInput);
+/* ===== Insert Token ===== */
 
-/* ===== Insert token ===== */
 function setMode(m) {
+
     mode = m;
 
     const token = document.createElement("span");
+
     token.className = "token";
     token.contentEditable = "false";
     token.innerText = m;
 
     input.innerHTML = "";
+
     input.appendChild(token);
     input.appendChild(document.createTextNode(" "));
 
     placeCursorAtEnd(input);
+
     slashMenu.style.display = "none";
+
     updatePlaceholder();
 }
 
 /* ===== Cursor ===== */
+
 function placeCursorAtEnd(el) {
+
     el.focus();
+
     const range = document.createRange();
+
     range.selectNodeContents(el);
     range.collapse(false);
+
     const sel = window.getSelection();
+
     sel.removeAllRanges();
     sel.addRange(range);
 }
 
 /* ===== Backspace ===== */
+
 input.addEventListener("keydown", function(e) {
+
     if (e.key === "Backspace") {
+
         const sel = window.getSelection();
         const node = sel.anchorNode;
 
-        if (node && node.parentElement && node.parentElement.classList.contains("token")) {
+        if (
+            node &&
+            node.parentElement &&
+            node.parentElement.classList.contains("token")
+        ) {
             node.parentElement.remove();
             mode = "Auto";
+
             e.preventDefault();
+
             updatePlaceholder();
         }
     }
@@ -223,118 +469,155 @@ input.addEventListener("keydown", function(e) {
     }
 });
 
-/* ===== Add message ===== */
-function addMessage(text, type, sources=[]) {
+/* ===== Add Message ===== */
+
+function addMessage(text, type, sources = []) {
+
     const chat = document.getElementById("chat");
 
     const msg = document.createElement("div");
+
     msg.className = "msg " + type;
+
     msg.innerHTML = formatText(text);
 
     if (type === "bot" && sources.length > 0) {
+
         const btn = document.createElement("div");
+
         btn.className = "meta-btn";
         btn.innerText = "Sources";
 
-        const box = document.createElement("div");
-        box.className = "sources-box";
-        box.innerText = sources.join("\n");
-
         btn.onclick = () => {
-            showSourcesPopup(Sources)
+            showSourcesPopup(sources);
         };
 
         msg.appendChild(btn);
-        msg.appendChild(box);
     }
 
     chat.appendChild(msg);
+
     chat.scrollTop = chat.scrollHeight;
 }
 
 /* ===== Send ===== */
+
 function sendMessage() {
+
     let text = input.innerText.trim();
+
     if (!text) return;
 
-    text = text.replace("LLM", "").replace("Local", "").trim();
+    text = text.replace("LLM", "")
+               .replace("Local", "")
+               .trim();
 
     addMessage(text, "user");
 
     input.innerHTML = "";
+
     updatePlaceholder();
 
     const thinking = document.createElement("div");
+
     thinking.className = "msg bot";
     thinking.innerText = "Thinking...";
+
     document.getElementById("chat").appendChild(thinking);
 
     setTimeout(() => {
+
         thinking.remove();
+
         generateResponse(text);
+
     }, 200);
 }
 
-/* ==== Sources ==== */
+/* ===== Sources Popup ===== */
+
 function showSourcesPopup(sources) {
+
     let popup = document.getElementById("popup");
 
     if (!popup) {
+
         popup = document.createElement("div");
+
         popup.id = "popup";
-        popup.style.position = "fixed";
-        popup.style.bottom = "80px";
-        popup.style.right = "20px";
-        popup.style.background = "#111827";
-        popup.style.padding = "15px";
-        popup.style.borderRadius = "10px";
-        popup.style.maxWidth = "300px";
-        popup.style.zIndex = "1000";
 
         document.body.appendChild(popup);
     }
 
     popup.innerHTML = `
         <b>Sources</b><br><br>
+
         ${sources.map(s => `<div>• ${s}</div>`).join("")}
-        <br><button onclick="this.parentElement.remove()">Close</button>
+
+        <br>
+
+        <button onclick="document.getElementById('popup').remove()">
+            Close
+        </button>
     `;
 }
+
+/* ===== Text Formatting ===== */
+
 function formatText(text) {
+
     return text
-        .replace(/\*(.*?)\*/g, "<b>$1</b>")   // *bold*
-        .replace(/_(.*?)_/g, "<i>$1</i>");   // _italic_ (optional)
+        .replace(/\*(.*?)\*/g, "<b>$1</b>")
+        .replace(/_(.*?)_/g, "<i>$1</i>");
 }
 
-/* ===== RAG CALL ===== */
+/* ===== Query API ===== */
+
 async function generateResponse(query) {
+
     try {
+
         console.log("Sending request:", query);
 
         const res = await fetch("/query", {
+
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
             body: JSON.stringify({
                 query: query,
-                use_llm: mode === "LLM"
+                use_llm: mode !== "Local"
             })
         });
 
-        console.log("Response status:", res.status);
-
         const data = await res.json();
-        console.log("Response data:", data);
 
-        addMessage(data.answer || "No response", "bot", data.sources || []);
+        console.log(data);
+
+        addMessage(
+            data.answer || "No response",
+            "bot",
+            data.sources || []
+        );
 
     } catch (err) {
-        console.error("FETCH ERROR:", err);
-        addMessage("⚠️ ERROR: " + err.message, "bot");
+
+        console.error(err);
+
+        addMessage(
+            "⚠️ ERROR: " + err.message,
+            "bot"
+        );
     }
 }
 
-/* init */
+/* ===== Init ===== */
+
 updatePlaceholder();
+
 </script>
 
 </body>

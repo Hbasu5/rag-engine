@@ -1,5 +1,28 @@
-model/
-_pycache_/
+# Python
+__pycache__/
 *.pyc
+
+# Test File
 test.py
-data/
+
+# Model
+model/
+
+# Virtual env
+venv/
+.env
+
+# Uploaded files
+uploads/*.txt
+
+# Vector DB / FAISS
+data/*.index
+data/*.faiss
+data/*.pkl
+
+# Optional raw training docs
+data/raw/
+
+# OS junk
+.DS_Store
+Thumbs.db
