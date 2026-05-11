@@ -1,105 +1,132 @@
-### Note: The README might not be up-to-date with the current code/folder structure since development focus is in implementing new features. I will try my best to update it as soon as possible😄.
-
 # 🧠 RAG Engine
 
-A modular **Retrieval-Augmented Generation (RAG)** system built for scalable, real-world AI applications.
+A modular, upload-based **Retrieval-Augmented Generation (RAG)** system designed for scalable real-world AI applications.
 
 ---
 
-## 🚀 Overview
+# 🚀 Overview
 
-This project implements the core pipeline of a RAG system:
+This project implements a complete dynamic RAG pipeline:
 
-* 🔍 Semantic retrieval using embeddings
-* ⚡ Fast similarity search with FAISS
-* 🧠 Hybrid ranking (semantic + keyword)
-* 🧩 Modular design for easy extension (LLMs, APIs, datasets)
+- 📄 User document upload
+- 🧩 Text chunking
+- 🧠 Embedding generation
+- ⚡ FAISS vector search
+- 🔍 Hybrid retrieval
+- 🤖 LLM + Local fallback routing
+- 💬 Interactive web-based chat UI
 
-> Designed to start simple and scale into a full AI system.
+> Built to evolve from a learning project into a fully extensible AI system.
 
 ---
 
-## 🧱 Architecture
+# ✨ Features
 
-```
+## 🔍 Retrieval System
+- Semantic similarity search
+- Hybrid retrieval (semantic + keyword)
+- FAISS vector database
+- Top-K context retrieval
+
+---
+
+## 📄 Dynamic Upload System
+- Upload `.txt` documents directly from UI
+- Runtime indexing
+- Automatic embedding generation
+- Dynamic knowledge base rebuilding
+
+---
+
+## 🤖 AI Routing
+- Gemini-powered response generation
+- Local fallback answer engine
+- Mode switching:
+  - LLM Mode
+  - Local Mode
+
+---
+
+## 💬 Interactive Web UI
+- Chat-style interface
+- Slash commands
+- Upload attachment menu
+- Source inspection popup
+- Modal-based upload feedback
+
+---
+
+# 🧱 Architecture
+
+```text
+User Upload
+     ↓
+Document Processing
+     ↓
+Chunking
+     ↓
+Embedding Generation
+     ↓
+FAISS Indexing
+     ↓
 User Query
-    ↓
-Embedding (query)
-    ↓
-Vector Search (FAISS)
-    ↓
-Top-K Retrieval
-    ↓
-Ranking (semantic + keyword)
-    ↓
-Context Output → (LLM ready)
+     ↓
+Retriever Engine
+     ↓
+Top-K Context
+     ↓
+LLM / Local Routing
+     ↓
+Response + Sources
 ```
 
 ---
 
-## ✨ Features
+# 📁 Project Structure
 
-* Sentence-level chunking for precise retrieval
-* Semantic similarity search using embeddings
-* FAISS-based vector database
-* Hybrid ranking to improve relevance
-* Modular structure for scalability
-* Local-first setup (can be extended to APIs)
-
----
-
-## 📁 Project Structure
-
-```
-rag-engine/
+```text
+RAG/
 │
 ├── app/
 │   │
-│   ├── core/                     # 🧠 Core logic (no I/O)
-│   │   ├── __init__.py
+│   ├── core/
 │   │   ├── chunking.py
 │   │   ├── embeddings.py
 │   │   ├── retriever.py
+│   │   └── retriever_engine.py
 │   │
-│   ├── storage/                  # 💾 Persistence layer
-│   │   ├── faiss_store.py
+│   ├── ingestion/
+│   │   └── loader.py
 │   │
-│   ├── ingestion/                # 📂 Data loading
-│   │   ├── loader.py             # txt/md (PDF later)
+│   ├── llm/
+│   │   ├── base.py
+│   │   └── gemini.py
 │   │
-│   ├── services/                 # ⚙️ Orchestration
-│       ├── __init__.py
-│       ├── rag_pipeline.py
-│
-│
-├── data/                         # ⚠️ Runtime-generated (gitignored)
-│   ├── raw/                      # user files
-│   │   ├── *.txt
-│   │   ├── *.md
+│   ├── services/
+│   │   ├── answer_engine.py
+│   │   └── rag_pipeline.py
 │   │
-│   ├── faiss.index
-│   ├── metadata.pkl
+│   └── storage/
+│       └── faiss_store.py
 │
-├── models/                       # 🤖 Embedding models (gitignored)
+├── uploads/                # User-uploaded files (gitignored)
 │
+├── data/                   # Runtime-generated vector DB (gitignored)
 │
-├── test.py                       # Scratch testing (gitignored)
-├── main.py                       # Entry point
+├── model/                  # Embedding models (gitignored)
+│
+├── index.html              # Frontend UI
+├── main.py                 # FastAPI server
 ├── requirements.txt
 ├── README.md
-├── Dare.md
-├── .gitignore
+└── .gitignore
 ```
 
-IMPORTANT NOTES:
-* data\ folder is  only added as a part of a feature release, and is left for immediate start-up without any prior training, future pushes will not be made for \data\.
-* sample.txt is AI Generated and has be added for immediate exploration of the system; future pushes will not have any new changes.
-* everything in main.py is from test.py; it is hard-tested and hence main.py is free for any errors.
 ---
 
-## ⚙️ Setup
+# ⚙️ Setup
 
-### 1. Clone the repository
+## 1. Clone Repository
 
 ```bash
 git clone https://github.com/your-username/rag-engine.git
@@ -108,7 +135,7 @@ cd rag-engine
 
 ---
 
-### 2. Install dependencies
+## 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -116,20 +143,31 @@ pip install -r requirements.txt
 
 ---
 
-### 3. Download embedding model
+## 3. Download Embedding Model
 
-Download from:
+Download:
+
 https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
 
 Place inside:
 
-```
+```text
 model/all-MiniLM-L6-v2/
 ```
 
 ---
 
-### 4. Run the system
+## 4. Configure Gemini API Key
+
+Set environment variable:
+
+```bash
+GEMINI_API_KEY=your_api_key
+```
+
+---
+
+## 5. Run Server
 
 ```bash
 python main.py
@@ -137,72 +175,81 @@ python main.py
 
 ---
 
-## 🧪 Example
+# 🌐 Access UI
 
-**sample.txt may either have or not have this!**
-```
-Ask something: What is Python?
+Open:
 
-Top Matches:
-
-- Python is a programming language used for AI and web development.
+```text
+http://127.0.0.1:8000
 ```
 
 ---
 
-## 🧠 How it Works
+# 📄 Supported File Types
 
-1. Text is split into meaningful chunks
-2. Each chunk is converted into embeddings
-3. FAISS indexes embeddings for fast search
-4. Query is embedded and compared
-5. Relevant chunks are retrieved and ranked
+Current:
+- `.txt`
 
----
-
-## 🔌 Extensibility
-
-This system is designed to be extended:
-
-* 🔹 Plug in LLMs (OpenAI, local models, etc.)
-* 🔹 Add PDF or document ingestion **(done in feature release; document ingestion)**
-* 🔹 Replace embedding providers
-* 🔹 Build APIs or UI layers
+Planned:
+- `.pdf`
+- `.docx`
+- OCR/Image ingestion
+- Web ingestion
 
 ---
 
-## 🚧 Future Improvements
+# 🧠 How It Works
 
-* Context-aware response generation
-* Multi-document ingestion (PDF, web, etc.)
-* Persistent vector storage
-* API backend (FastAPI)
-* UI interface
-
----
-
-## 🧨 Why this Project?
-
-Most RAG implementations focus only on LLMs.
-
-This project focuses on the **retrieval layer**, which is the foundation of any reliable RAG system.
+1. User uploads document
+2. System chunks document
+3. Embeddings generated
+4. FAISS builds searchable vector index
+5. User sends query
+6. Relevant chunks retrieved
+7. LLM or Local engine generates response
 
 ---
 
-## 📌 Tech Stack
+# 🔌 Extensibility
 
-* Python
-* SentenceTransformers
-* FAISS
-* NumPy
+Designed for future upgrades:
+
+- PDF ingestion
+- Multi-user sessions
+- Query reranking
+- Retrieval thresholding
+- Metadata tracking
+- Persistent workspaces
+- Audio ingestion
+- Web search integration
 
 ---
 
-## 📄 License
+# 🚧 Current Limitations
+
+- Uploads rebuild index globally
+- No persistent user sessions yet
+- Local answer engine is basic
+- No reranking layer yet
+- TXT support only
+
+---
+
+# 📌 Tech Stack
+
+- Python
+- FastAPI
+- SentenceTransformers
+- FAISS
+- Gemini API
+- HTML/CSS/JavaScript
+
+---
+
+# 📄 License
 
 MIT License
 
 ---
 
-
-© 2026- HARDIK BASU
+© 2026 — HARDIK BASU
