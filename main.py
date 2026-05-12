@@ -21,7 +21,10 @@ def serve_ui():
 
 # 🔍 RETRIEVER
 retriever = RetrieverEngine()
-retriever.load("data")
+try:
+    retriever.load("data")
+except FileNotFoundError:
+    print("⚠️ No existing FAISS index found. Upload files to build one.")
 
 # 🤖 LLM
 api_key = os.getenv("GEMINI_API_KEY")
@@ -33,9 +36,21 @@ rag = RAGPipeline(retriever=retriever, llm=llm)
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
 
-    # only txt allowed for now
-    if not file.filename.endswith(".txt"):
-        return {"error": "Only .txt files supported"}
+    SUPPORTED_EXTENSIONS = (
+        ".txt",
+        ".md",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".mp3",
+        ".wav",
+        ".m4a"
+    )
+
+    if not file.filename.lower().endswith(SUPPORTED_EXTENSIONS):
+        return {
+            "error": "Unsupported file type"
+        }
 
     save_path = f"uploads/{file.filename}"
 
@@ -43,7 +58,7 @@ async def upload_file(file: UploadFile = File(...)):
     with open(save_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # build new index from uploaded file
+    # rebuild index from uploads folder
     rag.retriever.build_from_folder("uploads")
 
     return {

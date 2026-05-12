@@ -15,6 +15,30 @@ body {
     height: 100vh;
 }
 
+#progressContainer {
+    width: 100%;
+    max-width: 320px;
+    height: 14px;
+    background: #374151;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 14px auto 0 auto;
+}
+
+#progressBar {
+    width: 0%;
+    height: 100%;
+    background: #2563eb;
+    transition: width 0.2s;
+}
+
+#progressText {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #93c5fd;
+    text-align: center;
+}
+
 #header {
     height: 55px;
     display: flex;
@@ -69,7 +93,7 @@ body {
 }
 
 #attachBtn {
-    width:38px;
+    width:30px;
     height: 38px;
     min-width: 42px;
     background: #2563eb;
@@ -179,7 +203,7 @@ button {
     background: #111827;
     padding: 30px;
     border-radius: 18px;
-    min-width: 320px;
+    width: 380px;
     text-align: center;
     border: 1px solid #374151;
 }
@@ -196,6 +220,8 @@ button {
     padding: 10px 18px;
     border-radius: 10px;
     cursor: pointer;
+    margin-top: 12px;
+    margin-left: 0;
 }
 
 #modalContent button:hover {
@@ -248,7 +274,7 @@ button {
         📄 Add Document
     </div>
 
-    <div class="attach-item">
+    <div class="attach-item" onclick="triggerAudioUpload()">
         🎤 Add Audio
     </div>
 
@@ -266,6 +292,14 @@ button {
 
         <div id="modalMessage">
             Upload successful
+        </div>
+
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
+
+        <div id="progressText">
+            0%
         </div>
 
         <button onclick="closeModal()">
@@ -294,31 +328,54 @@ fileUpload.addEventListener("change", async () => {
 
     showModal("Uploading...");
 
+    updateProgress(0);
+
     const formData = new FormData();
     formData.append("file", file);
 
-    try {
+    const xhr = new XMLHttpRequest();
 
-        const res = await fetch("/upload", {
-            method: "POST",
-            body: formData
-        });
+    xhr.open("POST", "/upload", true);
 
-        const data = await res.json();
+    xhr.upload.onprogress = function(e) {
 
-        if (data.error) {
-            showModal("❌ " + data.error);
-            return;
+        if (e.lengthComputable) {
+
+            const percent = Math.round(
+                (e.loaded / e.total) * 100
+            );
+
+            updateProgress(percent);
         }
+    };
 
-        showModal("✅ " + data.message);
+    xhr.onload = function() {
 
-    } catch (err) {
+        if (xhr.status === 200) {
+
+            const data = JSON.parse(xhr.responseText);
+
+            if (data.error) {
+                showModal("❌ " + data.error);
+                return;
+            }
+
+            updateProgress(100);
+
+            showModal("✅ " + data.message);
+
+        } else {
+
+            showModal("❌ Upload failed");
+        }
+    };
+
+    xhr.onerror = function() {
 
         showModal("❌ Upload failed");
+    };
 
-        console.error(err);
-    }
+    xhr.send(formData);
 });
 
 /* ===== Attachment Menu ===== */
@@ -336,7 +393,22 @@ function toggleAttachMenu() {
 
 function triggerUpload() {
 
-    document.getElementById("fileUpload").click();
+    const upload = document.getElementById("fileUpload");
+
+    upload.accept = ".txt,.md,.png,.jpg,.jpeg";
+
+    upload.click();
+
+    document.getElementById("attachMenu").style.display = "none";
+}
+
+function triggerAudioUpload() {
+
+    const upload = document.getElementById("fileUpload");
+
+    upload.accept = ".mp3,.wav,.m4a";
+
+    upload.click();
 
     document.getElementById("attachMenu").style.display = "none";
 }
@@ -353,6 +425,15 @@ function showModal(message) {
 function closeModal() {
 
     document.getElementById("uploadModal").style.display = "none";
+}
+
+function updateProgress(percent) {
+
+    document.getElementById("progressBar").style.width =
+        percent + "%";
+
+    document.getElementById("progressText").innerText =
+        percent + "%";
 }
 
 /* ===== Close Menu On Outside Click ===== */

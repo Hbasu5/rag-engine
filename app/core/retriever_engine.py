@@ -12,18 +12,39 @@ class RetrieverEngine:
         self.texts = None
 
     def build_from_folder(self, folder="data/raw"):
+
         documents = load_documents(folder)
 
+        print("DOCUMENTS:", documents)
+
         chunks = []
+
         for doc in documents:
-            chunks.extend(chunk_text(doc))
+
+            print("DOC:", repr(doc))
+
+            chunked = chunk_text(doc)
+
+            print("CHUNKED:", chunked)
+
+            chunks.extend(chunked)
+
+        print("FINAL CHUNKS:", chunks)
+
+        if not chunks:
+            raise ValueError("No chunks generated.")
 
         embeddings = self.model.encode(chunks)
 
+        print("EMBEDDINGS TYPE:", type(embeddings))
+        print("EMBEDDINGS:", embeddings)
+
         self.index = build_index(embeddings)
+
         self.texts = chunks
 
         save_index(self.index, self.texts)
+
         print("✅ Index built and saved.")
 
     def load(self, path="data"):

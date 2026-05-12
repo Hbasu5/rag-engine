@@ -26,3 +26,6 @@ data/raw/
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Test Files
+.mp3
