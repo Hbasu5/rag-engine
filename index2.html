@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RAG Intelligence</title>
+<style>
+    /* ===== Variables & Theme ===== */
+    :root {
+        --bg-main: #09090b; /* Zinc 950 */
+        --bg-panel: #18181b; /* Zinc 900 */
+        --bg-input: #27272a; /* Zinc 800 */
+        --border-color: #3f3f46; /* Zinc 700 */
+        --accent: #3b82f6; /* Blue 500 */
+        --accent-hover: #2563eb; /* Blue 600 */
+        --text-main: #f4f4f5; /* Zinc 50 */
+        --text-muted: #a1a1aa; /* Zinc 400 */
+        --user-bubble: #2563eb;
+        --bot-bubble: #18181b;
+        --glass-bg: rgba(24, 24, 27, 0.7);
+        --glass-border: rgba(63, 63, 70, 0.5);
+    }
+
+    /* ===== Global Styles ===== */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg-main);
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    /* ===== Header ===== */
+    #header {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        background: var(--bg-main);
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+        font-size: 16px;
+        z-index: 10;
+        flex-shrink: 0;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .brand svg {
+        width: 20px;
+        height: 20px;
+        color: var(--accent);
+    }
+
+    .modalities {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .modality-badge 
+    {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.04);
+        padding: 7px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        cursor: default;
+        transition: all 0.2s ease;
+        user-select: none;
+        font-size: 13px;
+    }
+
+    .modality-badge.active {
+        border-color: rgba(59,130,246,0.5);
+        background: rgba(59,130,246,0.12);
+    }
+
+    .modality-badge:hover {
+        transform: translateY(-1px);
+    }
+
+    #webToggle {
+        cursor: pointer;
+    }
+
+    #webToggle.active {
+        background: rgba(37,99,235,0.18);
+        border-color: #3b82f6;
+        box-shadow: 0 0 18px rgba(59,130,246,0.25);
+    }
+
+    /* ===== Chat Area ===== */
+    .chat-wrapper {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        overflow-y: hidden;
+        position: relative;
+    }
+
+    #chat {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        width: 100%;
+        max-width: 800px;
+        scroll-behavior: smooth;
+    }
+
+    #chat::-webkit-scrollbar { width: 6px; }
+    #chat::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+    .msg {
+        max-width: 80%;
+        padding: 16px 20px;
+        border-radius: 16px;
+        line-height: 1.6;
+        word-wrap: break-word;
+        font-size: 15px;
+        animation: fadeIn 0.3s ease-out;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user {
+        background: var(--user-bubble);
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+        background: var(--bot-bubble);
+        border: 1px solid var(--border-color);
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+
+    .meta-btn {
+        margin-top: 12px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--text-muted);
+        background: rgba(255,255,255,0.05);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .meta-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: var(--text-main);
+        border-color: var(--border-color);
+    }
+
+    .meta-btn::before {
+        content: '📚';
+        font-size: 14px;
+    }
+
+    /* ===== Input Area ===== */
+    .input-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 0 20px 24px 20px;
+        background: linear-gradient(to top, var(--bg-main) 80%, transparent);
+        flex-shrink: 0;
+    }
+
+    #inputBox {
+        display: flex;
+        align-items: flex-end;
+        padding: 8px;
+        background: var(--bg-input);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 800px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        position: relative;
+        transition: border-color 0.2s;
+    }
+
+    #inputBox:focus-within {
+        border-color: var(--accent);
+    }
+
+    .controls-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 4px;
+        padding-left: 4px;
+    }
+
+    #attachBtn {
+        width: 36px;
+        height: 36px;
+        background: transparent;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: 0.2s;
+    }
+
+    #attachBtn:hover {
+        background: rgba(255,255,255,0.1);
+        color: var(--text-main);
+    }
+
+    .web-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.05);
+        color: var(--text-muted);
+        font-size: 13px;
+        transition: 0.2s;
+        user-select: none;
+    }
+
+    .web-toggle:hover {
+        background: rgba(255,255,255,0.1);
+    }
+
+    .web-toggle.active {
+        color: var(--accent);
+        background: rgba(59, 130, 246, 0.15);
+    }
+
+    #query {
+        flex: 1;
+        padding: 12px;
+        color: var(--text-main);
+        outline: none;
+        min-height: 24px;
+        max-height: 150px;
+        overflow-y: auto;
+        font-size: 15px;
+        line-height: 1.5;
+    }
+
+    #query.empty:before {
+        content: "Ask anything... (Type '/' for commands)";
+        color: #52525b;
+        pointer-events: none;
+        display: block;
+    }
+
+    button {
+        width: 36px;
+        height: 36px;
+        margin-left: 8px;
+        margin-bottom: 4px;
+        margin-right: 4px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        background: var(--text-main);
+        color: var(--bg-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+        flex-shrink: 0;
+    }
+
+    button:hover {
+        background: var(--text-muted);
+        transform: scale(1.05);
+    }
+
+    button svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    /* ===== Menus ===== */
+    #attachMenu {
+        position: absolute;
+        bottom: 70px;
+        left: 0;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 12px;
+        overflow: hidden;
+        display: none;
+        min-width: 200px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        z-index: 1000;
+        animation: scaleUp 0.15s ease-out;
+        transform-origin: bottom left;
+    }
+
+    @keyframes scaleUp {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .attach-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .attach-item:hover {
+        background: rgba(255,255,255,0.08);
+    }
+
+    #slashMenu {
+        position: absolute;
+        bottom: 100%;
+        left: 100px;
+        margin-bottom: 10px;
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        display: none;
+        overflow: hidden;
+        min-width: 150px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .slash-item {
+        padding: 10px 14px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .slash-item:hover {
+        background: var(--bg-input);
+    }
+
+    .token {
+        background: var(--accent);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 6px;
+        margin-right: 6px;
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 500;
+        user-select: none;
+    }
+
+    /* ===== Upload Modal ===== */
+    #uploadModal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    #modalContent {
+        background: var(--bg-panel);
+        padding: 32px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 400px;
+        text-align: center;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+
+    #modalMessage {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 24px;
+    }
+
+    #progressContainer {
+        width: 100%;
+        height: 8px;
+        background: var(--bg-main);
+        border-radius: 999px;
+        overflow: hidden;
+        margin: 0 auto;
+        border: 1px solid var(--border-color);
+    }
+
+    #progressBar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), #60a5fa);
+        transition: width 0.3s ease;
+        border-radius: 999px;
+    }
+
+    #progressText {
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    #modalContent button 
+    {
+        display: block;
+        margin: 24px auto 0 auto;
+        background: var(--bg-input);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 8px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        width: auto;
+        height: auto;
+    }
+
+    #modalContent button:hover {
+        background: var(--border-color);
+        transform: none;
+    }
+
+    /* ===== Sources Popup ===== */
+    #popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 24px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        z-index: 1000;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        color: var(--text-main);
+        animation: scaleUp 0.2s ease-out;
+    }
+
+    .popup-header {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .popup-source-item {
+        background: var(--bg-main);
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .popup-close {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 16px;
+        width: 100%;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .popup-close:hover {
+        background: var(--accent-hover);
+    }
+
+    /* ===== Animations & Status ===== */
+    .loading-msg {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .typing {
+        display: flex;
+        gap: 4px;
+        padding: 4px 0;
+    }
+
+    .dot {
+        width: 6px;
+        height: 6px;
+        background: var(--text-muted);
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+    }
+
+    .status-text {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 600px) {
+        .modalities { display: none; }
+        .msg { max-width: 90%; }
+        #chat { padding: 16px; }
+        .input-wrapper { padding: 0 12px 16px 12px; }
+    }
+</style>
+</head>
+
+<body>
+
+<div id="header">
+    <div class="brand">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>RAG Engine</span>
+    </div>
+    <div class="modalities">
+
+    <div class="modality-badge"
+         onclick="openKnowledgePanel('docs')">
+        📄 Docs
+    </div>
+
+    <div class="modality-badge"
+         onclick="openKnowledgePanel('ocr')">
+        🖼️ OCR
+    </div>
+
+    <div class="modality-badge"
+         onclick="openKnowledgePanel('audio')">
+        🎤 Audio
+    </div>
+
+    <div class="modality-badge"
+         onclick="openKnowledgePanel('web')">
+        🌐 Web
+    </div>
+
+</div>
+</div>
+
+<div class="chat-wrapper">
+    <div id="chat"></div>
+</div>
+
+<div class="input-wrapper">
+    <div id="inputBox">
+        <div class="controls-left">
+            <div id="attachBtn" onclick="toggleAttachMenu()" title="Attach">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+            </div>
+            
+            <div class="web-toggle" id="webToggle" onclick="toggleWebSearch()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><path d="M2 12h20"/></svg>
+                <span>Search</span>
+            </div>
+        </div>
+
+        <div id="query" contenteditable="true"></div>
+
+        <button onclick="sendMessage()" title="Send">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+
+        <div id="slashMenu">
+            <div class="slash-item" onclick="setMode('LLM')">✨ Auto (LLM)</div>
+            <div class="slash-item" onclick="setMode('Local')">🔒 Strict Local</div>
+        </div>
+
+        <div id="attachMenu">
+            <div class="attach-item" onclick="triggerUpload()">
+                📄 Upload Document
+            </div>
+            <div class="attach-item" onclick="triggerAudioUpload()">
+                🎤 Upload Audio
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="fileUpload" hidden>
+
+<div id="uploadModal">
+    <div id="modalContent">
+        <div id="modalMessage">Uploading...</div>
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
+        <div id="progressText">0%</div>
+        <button onclick="closeModal()">Dismiss</button>
+    </div>
+</div>
+
+<script>
+let mode = "Auto";
+let webSearchActive = false;
+let webMaxResults = 3;
+let uploadedDocs = [];
+let uploadedOCR = [];
+let uploadedAudio = [];
+let webSources = [];
+
+const input = document.getElementById("query");
+const slashMenu = document.getElementById("slashMenu");
+const fileUpload = document.getElementById("fileUpload");
+
+/* ===== Web Search Toggle ===== */
+function toggleWebSearch() {
+
+    if (!webSearchActive) {
+
+        document.getElementById("webDialog")
+            .style.display = "flex";
+
+    } else {
+
+        webSearchActive = false;
+
+        document.getElementById("webToggle")
+            .classList.remove("active");
+    }
+}
+window.addEventListener("DOMContentLoaded", () => {
+
+    const slider = document.getElementById("webSlider");
+
+    slider.addEventListener("input", () => {
+
+        document.getElementById("sliderValue")
+            .innerText = slider.value;
+    });
+});
+
+
+function confirmWebSearch() {
+
+    webMaxResults = parseInt(
+        document.getElementById("webSlider").value
+    );
+
+    webSearchActive = true;
+
+    document.getElementById("webDialog")
+        .style.display = "none";
+
+    document.getElementById("webToggle")
+        .classList.add("active");
+
+    console.log("Web Max Results:", webMaxResults);
+}
+
+/* ===== Upload ===== */
+fileUpload.addEventListener("change", async () => {
+    const file = fileUpload.files[0];
+    if (!file) return;
+
+    showModal("Encrypting & Uploading...");
+    updateProgress(0);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/upload", true);
+
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100);
+            updateProgress(percent);
+            if(percent === 100) {
+                document.getElementById("modalMessage").innerText = "Processing indices...";
+            }
+        }
+    };
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            if (data.error) {
+                showModal("❌ " + data.error);
+                return;
+            }
+            updateProgress(100);
+            const filename = file.name.toLowerCase();
+
+            if (
+                filename.endsWith(".txt") ||
+                filename.endsWith(".md") ||
+                filename.endsWith(".pdf")
+            ) {
+                uploadedDocs.push(file.name);
+            }
+
+            else if (
+                filename.endsWith(".png") ||
+                filename.endsWith(".jpg") ||
+                filename.endsWith(".jpeg")
+            ) {
+                uploadedOCR.push(file.name);
+            }
+
+            else if (
+                filename.endsWith(".mp3") ||
+                filename.endsWith(".wav") ||
+                filename.endsWith(".m4a")
+            ) {
+                uploadedAudio.push(file.name);
+            }
+            showModal("✅ " + data.message);
+        } else {
+            showModal("❌ Upload failed");
+        }
+    };
+
+    xhr.onerror = function() {
+        showModal("❌ Upload failed");
+    };
+
+    xhr.send(formData);
+});
+
+/* ===== Attachment Menu ===== */
+function toggleAttachMenu() {
+    const menu = document.getElementById("attachMenu");
+    if (menu.style.display === "block") {
+        menu.style.display = "none";
+    } else {
+        menu.style.display = "block";
+    }
+}
+
+function triggerUpload() {
+    const upload = document.getElementById("fileUpload");
+    upload.accept = ".txt,.md,.png,.jpg,.jpeg,.pdf";
+    upload.click();
+    document.getElementById("attachMenu").style.display = "none";
+}
+
+function triggerAudioUpload() {
+    const upload = document.getElementById("fileUpload");
+    upload.accept = ".mp3,.wav,.m4a";
+    upload.click();
+    document.getElementById("attachMenu").style.display = "none";
+}
+
+/* ===== Modal ===== */
+function showModal(message) {
+    document.getElementById("modalMessage").innerText = message;
+    document.getElementById("uploadModal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("uploadModal").style.display = "none";
+    fileUpload.value = ''; // Reset file input
+}
+
+function updateProgress(percent) {
+    document.getElementById("progressBar").style.width = percent + "%";
+    document.getElementById("progressText").innerText = percent + "%";
+}
+
+/* ===== Close Menus On Outside Click ===== */
+document.addEventListener("click", function(e) {
+    const attachMenu = document.getElementById("attachMenu");
+    const attachBtn = document.getElementById("attachBtn");
+    const slashMenuElement = document.getElementById("slashMenu");
+
+    if (!attachMenu.contains(e.target) && !attachBtn.contains(e.target)) {
+        attachMenu.style.display = "none";
+    }
+    
+    if (e.target !== input && !slashMenuElement.contains(e.target) && !input.contains(e.target)) {
+        slashMenuElement.style.display = "none";
+    }
+});
+
+/* ===== Placeholder ===== */
+function updatePlaceholder() {
+    if (input.innerText.trim() === "") {
+        input.classList.add("empty");
+    } else {
+        input.classList.remove("empty");
+    }
+}
+
+input.addEventListener("input", handleInput);
+
+/* ===== Input Handler ===== */
+function handleInput() {
+    if (input.innerHTML === "<br>") {
+        input.innerHTML = "";
+    }
+
+    const text = input.innerText.trim();
+    if (text === "/") {
+        slashMenu.style.display = "block";
+    } else {
+        slashMenu.style.display = "none";
+    }
+    updatePlaceholder();
+}
+
+/* ===== Insert Token ===== */
+function setMode(m) {
+    mode = m;
+    const token = document.createElement("span");
+    token.className = "token";
+    token.contentEditable = "false";
+    token.innerText = m;
+
+    input.innerHTML = "";
+    input.appendChild(token);
+    input.appendChild(document.createTextNode(" "));
+
+    placeCursorAtEnd(input);
+    slashMenu.style.display = "none";
+    updatePlaceholder();
+}
+
+/* ===== Cursor ===== */
+function placeCursorAtEnd(el) {
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+/* ===== Backspace & Enter ===== */
+input.addEventListener("keydown", function(e) {
+    if (e.key === "Backspace") {
+        const sel = window.getSelection();
+        const node = sel.anchorNode;
+        if (node && node.parentElement && node.parentElement.classList.contains("token")) {
+            node.parentElement.remove();
+            mode = "Auto";
+            e.preventDefault();
+            updatePlaceholder();
+        }
+    }
+
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+/* ===== Add Message ===== */
+function addMessage(text, type, sources = []) {
+    const chat = document.getElementById("chat");
+    const msg = document.createElement("div");
+    msg.className = "msg " + type;
+    msg.innerHTML = formatText(text);
+
+    if (type === "bot" && sources.length > 0) {
+        const btn = document.createElement("div");
+        btn.className = "meta-btn";
+        btn.innerHTML = "View Sources";
+        btn.onclick = () => { showSourcesPopup(sources); };
+        msg.appendChild(btn);
+    }
+
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+/* ===== Send ===== */
+function sendMessage() {
+    let text = input.innerText.trim();
+    if (!text) return;
+
+    text = text.replace("LLM", "").replace("Local", "").trim();
+    addMessage(text, "user");
+    input.innerHTML = "";
+    updatePlaceholder();
+
+    // Setup Loading State
+    const thinking = document.createElement("div");
+    thinking.className = "msg bot loading-msg";
+    thinking.innerHTML = `
+        <div class="typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+        <div class="status-text">${webSearchActive ? 'Searching the web...' : 'Searching local knowledge...'}</div>
+    `;
+    document.getElementById("chat").appendChild(thinking);
+    
+    // Simulate Retrieval Steps
+    const statusEl = thinking.querySelector('.status-text');
+    let steps = webSearchActive 
+        ? ["Searching the web...", "Synthesizing information...", "Generating response..."]
+        : ["Searching local knowledge...", "Reading documents...", "Generating response..."];
+    
+    let stepIdx = 0;
+    const statusInterval = setInterval(() => {
+        stepIdx++;
+        if(stepIdx < steps.length) {
+            statusEl.innerText = steps[stepIdx];
+        }
+    }, 1500);
+
+    setTimeout(() => {
+        generateResponse(text, thinking, statusInterval);
+    }, 100);
+}
+
+/* ===== Sources Popup ===== */
+function showSourcesPopup(sources) {
+    let popup = document.getElementById("popup");
+    if (!popup) {
+        popup = document.createElement("div");
+        popup.id = "popup";
+        document.body.appendChild(popup);
+    }
+
+    popup.innerHTML = `
+        <div class="popup-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            Retrieved Sources
+        </div>
+        ${sources.map(s => `<div class="popup-source-item">${s}</div>`).join("")}
+        <button class="popup-close" onclick="document.getElementById('popup').remove()">Close</button>
+    `;
+    
+    // Add backdrop logic to close on click outside
+    const closeHandler = (e) => {
+        if(!popup.contains(e.target)) {
+            popup.remove();
+            document.removeEventListener('mousedown', closeHandler);
+        }
+    };
+    setTimeout(() => document.addEventListener('mousedown', closeHandler), 10);
+}
+
+/* ===== Text Formatting ===== */
+function formatText(text) {
+    return text
+        .replace(/\*(.*?)\*/g, "<strong>$1</strong>")
+        .replace(/_(.*?)_/g, "<em>$1</em>");
+}
+
+/* ===== Query API ===== */
+async function generateResponse(query, thinkingEl, intervalId) {
+    try {
+        console.log("Sending request:", query);
+        
+        const payload = {
+            query: query,
+            use_llm: mode !== "Local"
+        };
+        
+        // Include web search flag in payload if backend ever supports it
+        if(webSearchActive) {
+            payload.web_search = true;
+            payload.max_results = webMaxResults;
+        }
+
+        const res = await fetch("/query", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.sources) {
+            webSources = data.sources;
+        }
+        console.log(data);
+        
+        clearInterval(intervalId);
+        thinkingEl.remove();
+        
+        addMessage(data.answer || "No response", "bot", data.sources || []);
+
+    } catch (err) {
+        console.error(err);
+        clearInterval(intervalId);
+        thinkingEl.remove();
+        addMessage("⚠️ ERROR: " + err.message, "bot");
+    }
+}
+function openKnowledgePanel(type) {
+
+    const panel = document.getElementById("knowledgePanel");
+
+    const title = document.getElementById("knowledgeTitle");
+
+    const content = document.getElementById("knowledgeContent");
+
+    let items = [];
+
+    if (type === "docs") {
+        title.innerText = "📄 Uploaded Documents";
+        items = uploadedDocs;
+    }
+
+    else if (type === "ocr") {
+        title.innerText = "🖼️ OCR Images";
+        items = uploadedOCR;
+    }
+
+    else if (type === "audio") {
+        title.innerText = "🎤 Audio Files";
+        items = uploadedAudio;
+    }
+
+    else if (type === "web") {
+        title.innerText = "🌐 Web Sources";
+        items = webSources;
+    }
+
+    if (items.length === 0) {
+
+        content.innerHTML = `
+            <div style="
+                color:#a1a1aa;
+                text-align:center;
+                padding:30px 0;
+            ">
+                Nothing here yet.
+            </div>
+        `;
+    }
+
+    else {
+
+        content.innerHTML = items.map(item => `
+            <div style="
+                padding:12px 14px;
+                margin-bottom:10px;
+                border-radius:10px;
+                background:#27272a;
+                border:1px solid #3f3f46;
+                font-size:14px;
+                word-break:break-word;
+            ">
+                ${item}
+            </div>
+        `).join("");
+    }
+
+    panel.style.display = "flex";
+}
+
+function closeKnowledgePanel() {
+
+    document.getElementById("knowledgePanel")
+        .style.display = "none";
+}
+
+/* ===== Init ===== */
+updatePlaceholder();
+</script>
+<div id="knowledgePanel" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.55);
+    backdrop-filter:blur(4px);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+">
+
+    <div style="
+        width:90%;
+        max-width:500px;
+        max-height:70vh;
+        overflow-y:auto;
+        background:#18181b;
+        border:1px solid #3f3f46;
+        border-radius:18px;
+        padding:24px;
+        box-shadow:0 20px 40px rgba(0,0,0,0.5);
+    ">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:20px;
+        ">
+
+            <h2 id="knowledgeTitle">
+                Knowledge Sources
+            </h2>
+
+            <button onclick="closeKnowledgePanel()" style="
+                width:36px;
+                height:36px;
+                border-radius:50%;
+                border:none;
+                background:#27272a;
+                color:white;
+                cursor:pointer;
+            ">
+                ✕
+            </button>
+
+        </div>
+
+        <div id="knowledgeContent"></div>
+
+    </div>
+</div>
+<div id="webDialog" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(4px);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+">
+
+    <div style="
+        background:#18181b;
+        width:90%;
+        max-width:360px;
+        padding:28px;
+        border-radius:18px;
+        border:1px solid #3f3f46;
+    ">
+
+        <h2 style="
+            margin-bottom:18px;
+            font-size:20px;
+        ">
+            🌐 Web Search
+        </h2>
+
+        <p style="
+            color:#a1a1aa;
+            margin-bottom:20px;
+            font-size:14px;
+        ">
+            Choose how many web sources to retrieve.
+        </p>
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            margin-bottom:10px;
+            font-size:14px;
+        ">
+            <span>Max Sources</span>
+            <span id="sliderValue">3</span>
+        </div>
+
+        <input
+            type="range"
+            id="webSlider"
+            min="1"
+            max="10"
+            value="3"
+            style="
+                width:100%;
+                accent-color:#3b82f6;
+            "
+        >
+
+        <button onclick="confirmWebSearch()" style="
+            width:100%;
+            height:44px;
+            margin-top:24px;
+            border-radius:12px;
+            background:#2563eb;
+            color:white;
+            border:none;
+            cursor:pointer;
+            font-weight:600;
+        ">
+            Enable Web Search
+        </button>
+
+    </div>
+</div>
+</body>
+</html>
