@@ -1,39 +1,47 @@
-import re
+def chunk_text(
+    text,
+    chunk_size=500,
+    overlap=100
+):
 
-def chunk_text(text, chunk_size=300, overlap=80):
+    if not text:
+        return []
 
     text = text.strip()
 
     if not text:
         return []
 
-    sentences = re.split(r'(?<=[.!?])\s+', text)
+    sentences = text.split(". ")
 
     chunks = []
     current_chunk = ""
 
     for sentence in sentences:
 
-        # fallback for weird empty splits
-        if not sentence.strip():
+        sentence = sentence.strip()
+
+        if not sentence:
             continue
 
-        if len(current_chunk) + len(sentence) <= chunk_size:
+        # Add sentence safely
+        tentative = current_chunk + sentence + ". "
 
-            current_chunk += " " + sentence
+        if len(tentative) <= chunk_size:
+
+            current_chunk = tentative
 
         else:
 
-            if current_chunk.strip():
+            if current_chunk:
                 chunks.append(current_chunk.strip())
 
-            current_chunk = sentence
+            # overlap handling
+            overlap_text = current_chunk[-overlap:]
 
-    if current_chunk.strip():
+            current_chunk = overlap_text + sentence + ". "
+
+    if current_chunk:
         chunks.append(current_chunk.strip())
-
-    # FINAL SAFETY FALLBACK
-    if not chunks and text:
-        chunks.append(text)
 
     return chunks

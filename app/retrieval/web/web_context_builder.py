@@ -1,6 +1,6 @@
 from app.core.chunking import chunk_text
-from app.retrieval.web_search import search_web
-from app.retrieval.web_scraper import scrape_webpage
+from app.retrieval.web.web_search import search_web
+from app.retrieval.web.web_scraper import scrape_webpage
 
 
 def build_web_context(query, max_results):
