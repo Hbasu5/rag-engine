@@ -1,83 +1,170 @@
 # 🧠 RAG Engine
 
-A modular, upload-based **Retrieval-Augmented Generation (RAG)** system designed for scalable real-world AI applications.
+A modular multimodal **Retrieval-Augmented Generation (RAG)** system built for scalable real-world AI applications.
+
+Supports:
+- local knowledge retrieval
+- OCR ingestion
+- audio transcription
+- live web retrieval
+- hybrid multimodal querying
 
 ---
 
 # 🚀 Overview
 
-This project implements a complete dynamic RAG pipeline:
+RAG Engine has evolved from a text-only prototype into a hybrid multimodal retrieval system capable of combining:
 
-- 📄 User document upload
-- 🧩 Text chunking
-- 🧠 Embedding generation
-- ⚡ FAISS vector search
-- 🔍 Hybrid retrieval
-- 🤖 LLM + Local fallback routing
-- 💬 Interactive web-based chat UI
+- 📄 uploaded documents
+- 🖼️ OCR image extraction
+- 🎤 audio transcription
+- 🌐 live internet retrieval
 
-> Built to evolve from a learning project into a fully extensible AI system.
+through a unified semantic retrieval pipeline.
 
 ---
 
 # ✨ Features
 
-## 🔍 Retrieval System
+# 🔍 Hybrid Retrieval System
+
 - Semantic similarity search
-- Hybrid retrieval (semantic + keyword)
 - FAISS vector database
-- Top-K context retrieval
+- Dynamic Top-K retrieval
+- Local + web retrieval routing
+- Structured retrieval context assembly
 
 ---
 
-## 📄 Dynamic Upload System
-- Upload `.txt` documents directly from UI
-- Runtime indexing
-- Automatic embedding generation
-- Dynamic knowledge base rebuilding
+# 📄 Dynamic Upload System
+
+- Runtime document uploads
+- Automatic chunking
+- Embedding generation
+- Dynamic vector index rebuilding
+- Upload observability
 
 ---
 
-## 🤖 AI Routing
-- Gemini-powered response generation
-- Local fallback answer engine
-- Mode switching:
-  - LLM Mode
-  - Local Mode
+# 🖼️ OCR Ingestion
+
+Supports:
+- `.png`
+- `.jpg`
+- `.jpeg`
+
+Powered by:
+- pytesseract
+- Pillow
+
+Capabilities:
+- scanned text extraction
+- screenshot ingestion
+- printed English OCR
 
 ---
 
-## 💬 Interactive Web UI
-- Chat-style interface
-- Slash commands
-- Upload attachment menu
-- Source inspection popup
-- Modal-based upload feedback
+# 🎤 Audio Transcription
+
+Supports:
+- `.mp3`
+- `.wav`
+- `.m4a`
+
+Powered by:
+- Whisper (tiny)
+- FFmpeg
+
+Capabilities:
+- speech-to-text ingestion
+- transcript indexing
+- audio-based retrieval
 
 ---
 
-# 🧱 Architecture
+# 🌐 Live Web Retrieval
+
+Implemented real-time internet augmentation pipeline.
+
+### Web Retrieval Flow
 
 ```text
-User Upload
-     ↓
-Document Processing
-     ↓
-Chunking
-     ↓
-Embedding Generation
-     ↓
-FAISS Indexing
-     ↓
 User Query
-     ↓
+ ↓
+Web Search
+ ↓
+URL Extraction
+ ↓
+Webpage Fetching
+ ↓
+Content Extraction
+ ↓
+Chunking
+ ↓
+Structured Web Context
+ ↓
+LLM Response
+```
+
+### Stack Used
+
+- DDGS
+- Requests
+- Trafilatura
+
+Features:
+- live internet retrieval
+- semantic webpage extraction
+- structured web context
+- web source tracking
+- retrieval observability
+
+---
+
+# 💬 Consumer-Grade AI UI
+
+Frontend redesigned from:
+- developer utility UI
+
+to:
+- modern AI assistant interface
+
+Features:
+- chat-style interaction
+- modality-aware UI
+- upload progress tracking
+- web search configuration dialog
+- retrieval observability panels
+- source inspection system
+- interactive modality badges
+- slash command support
+
+---
+
+# 🧠 Architecture
+
+```text
+FILE / WEB QUERY
+        ↓
+Extractor Router
+ ├── TXT Extractor
+ ├── OCR Extractor
+ ├── Audio Extractor
+ └── Web Retriever
+        ↓
+Normalized Text
+        ↓
+Chunking
+        ↓
+Embedding Generation
+        ↓
+FAISS Indexing
+        ↓
 Retriever Engine
-     ↓
-Top-K Context
-     ↓
-LLM / Local Routing
-     ↓
-Response + Sources
+        ↓
+Structured Context
+        ↓
+LLM / Local Response
 ```
 
 ---
@@ -96,7 +183,18 @@ RAG/
 │   │   └── retriever_engine.py
 │   │
 │   ├── ingestion/
+│   │   ├── extractors/
+│   │   │   ├── txt_extractor.py
+│   │   │   ├── ocr_extractor.py
+│   │   │   ├── audio_extractor.py
+│   │   │   └── extractor_router.py
+│   │   │
 │   │   └── loader.py
+│   │
+│   ├── retrieval/
+│   │   ├── web_search.py
+│   │   ├── web_scraper.py
+│   │   └── web_context_builder.py
 │   │
 │   ├── llm/
 │   │   ├── base.py
@@ -109,14 +207,12 @@ RAG/
 │   └── storage/
 │       └── faiss_store.py
 │
-├── uploads/                # User-uploaded files (gitignored)
+├── uploads/
+├── data/
+├── model/
 │
-├── data/                   # Runtime-generated vector DB (gitignored)
-│
-├── model/                  # Embedding models (gitignored)
-│
-├── index.html              # Frontend UI
-├── main.py                 # FastAPI server
+├── index.html
+├── main.py
 ├── requirements.txt
 ├── README.md
 └── .gitignore
@@ -159,15 +255,21 @@ model/all-MiniLM-L6-v2/
 
 ## 4. Configure Gemini API Key
 
-Set environment variable:
-
 ```bash
 GEMINI_API_KEY=your_api_key
 ```
 
 ---
 
-## 5. Run Server
+## 5. Install FFmpeg
+
+Required for audio transcription.
+
+Add FFmpeg to system PATH.
+
+---
+
+## 6. Run Server
 
 ```bash
 python main.py
@@ -177,61 +279,76 @@ python main.py
 
 # 🌐 Access UI
 
-Open:
-
 ```text
 http://127.0.0.1:8000
 ```
 
 ---
 
-# 📄 Supported File Types
+# 📄 Supported Inputs
 
-Current:
+## Documents
 - `.txt`
+- `.md`
+
+## OCR Images
+- `.png`
+- `.jpg`
+- `.jpeg`
+
+## Audio
+- `.mp3`
+- `.wav`
+- `.m4a`
+
+## Web
+- live web retrieval
+- semantic webpage extraction
+
+---
+
+# 🧠 Retrieval Capabilities
+
+Current retrieval sources:
+- uploaded documents
+- OCR-extracted text
+- audio transcripts
+- live internet knowledge
+
+---
+
+# 🔌 Planned Upgrades
+
+## v1.0.5-beta
 
 Planned:
-- `.pdf`
-- `.docx`
-- OCR/Image ingestion
-- Web ingestion
-
----
-
-# 🧠 How It Works
-
-1. User uploads document
-2. System chunks document
-3. Embeddings generated
-4. FAISS builds searchable vector index
-5. User sends query
-6. Relevant chunks retrieved
-7. LLM or Local engine generates response
-
----
-
-# 🔌 Extensibility
-
-Designed for future upgrades:
-
-- PDF ingestion
-- Multi-user sessions
-- Query reranking
-- Retrieval thresholding
-- Metadata tracking
-- Persistent workspaces
-- Audio ingestion
-- Web search integration
+- metadata-aware retrieval
+- multilingual audio
+- reranking
+- confidence scoring
+- retrieval thresholding
+- caching
+- async retrieval
+- observability expansion
 
 ---
 
 # 🚧 Current Limitations
 
-- Uploads rebuild index globally
-- No persistent user sessions yet
-- Local answer engine is basic
-- No reranking layer yet
-- TXT support only
+## OCR
+- no handwriting support
+- multilingual OCR still experimental
+- no layout preservation
+
+## Audio
+- English-only
+- no speaker diarization
+- no multilingual transcription
+
+## Web Retrieval
+- no reranking
+- no caching
+- temporary retrieval context only
 
 ---
 
@@ -242,6 +359,9 @@ Designed for future upgrades:
 - SentenceTransformers
 - FAISS
 - Gemini API
+- Whisper
+- Pytesseract
+- Trafilatura
 - HTML/CSS/JavaScript
 
 ---
