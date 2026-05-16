@@ -4,28 +4,33 @@ from app.retrieval.web.web_scraper import scrape_webpage
 
 
 def build_web_context(query, max_results):
-    max_results	 = max(1, min(max_results, 10))
+    max_results = max(1, min(max_results, 10))
     search_results = search_web(query, max_results)
-    web_sources=[]
+    web_sources = []
     web_context = ""
-    
-    valid_sources=0
+
+    valid_sources = 0
 
     for index, result in enumerate(search_results, start=1):
 
         title = result["title"]
         url = result["url"]
-        web_sources.append(f"{title} — {url}")
-
         scraped_text = scrape_webpage(url)
+        if not scraped_text:
+            continue
+        if len(scraped_text.strip()) < 200:
+            continue
+
         chunks = chunk_text(scraped_text)
         selected_chunks = chunks[:3]
         formatted_chunks = "\n\n".join(selected_chunks)
-        if not scraped_text:
-            continue
-        if len(scraped_text.strip())<200:
-            continue
-        valid_sources+=1
+        valid_sources += 1
+        web_sources.append({
+            "title": title,
+            "url": url,
+            "snippet": result.get("snippet"),
+            "kind": "web"
+        })
         web_context += f"""
 [WEB SOURCE {index}]
 TITLE: {title}

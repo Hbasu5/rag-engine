@@ -5,27 +5,56 @@ __pycache__/
 # Test File
 test.py
 
+# Secrets
+.env
+.env.*
+!.env.example
+
 # Model
 model/
 
 # Virtual env
 venv/
-.env
 
 # Uploaded files
 uploads/
 
-# Vector DB / FAISS
-data/*.index
-data/*.faiss
-data/*.pkl
+# Training data / generated retrieval state
+data/
 
-# Optional raw training docs
-data/raw/
+# Vector DB / FAISS / embeddings
+*.index
+*.faiss
+*.pkl
+*.npy
+*.npz
+
+# Uploaded / raw media and docs
+*.mp3
+*.wav
+*.m4a
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.docx
+*.txt
+
+# Logs
+*.log
 
 # OS junk
 .DS_Store
 Thumbs.db
 
-# Test Files
-.mp3
+# Frontend generated/dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/.git.backup/
+frontend/.wrangler/
+frontend/.tanstack/
+frontend/.lovable/
+frontend/frontend.log
+frontend/frontend.err.log
+frontend/core-lumin - Copy
+frontend/core-lumin

@@ -16,7 +16,7 @@ def save_index(index, texts, path="data"):
     with open(meta_path, "wb") as f:
         pickle.dump(texts, f)
 
-    print(f"💾 Index saved at {index_path}")
+    print(f"Index saved at {index_path}")
 
 
 def load_index(path="data"):
@@ -24,7 +24,7 @@ def load_index(path="data"):
     meta_path = os.path.join(path, "metadata.pkl")
 
     if not os.path.exists(index_path) or not os.path.exists(meta_path):
-        raise FileNotFoundError("❌ FAISS index or metadata not found. Build first.")
+        raise FileNotFoundError("FAISS index or metadata not found. Build first.")
 
     # Load FAISS index
     index = faiss.read_index(index_path)

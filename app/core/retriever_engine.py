@@ -45,11 +45,11 @@ class RetrieverEngine:
 
         save_index(self.index, self.texts)
 
-        print("✅ Index built and saved.")
+        print("Index built and saved.")
 
     def load(self, path="data"):
         self.index, self.texts = load_index(path)
-        print("✅ Index loaded.")
+        print("Index loaded.")
 
     def retrieve(self, question, k=5):
         query_vec = self.model.encode([question])
